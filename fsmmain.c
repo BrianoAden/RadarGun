@@ -1,23 +1,23 @@
 #include "ti_msp_dl_config.h"
 #include <stdbool.h>
 #include <stdint.h>
+#include <math.h>
 
-/* ultrasonic pins on PA26 (trigger) and PA27 (echo) */
-#define TRIG_PIN   (1U << 26)
-#define ECHO_PIN   (1U << 27)
-
-/* LEDs on PA25 (red) and PA24 (blue) */
-#define RED_LED_PIN   (1U << 25)
-#define BLUE_LED_PIN  (1U << 24)
 
 /* delay constant for your loops */
-#define DELAY_MS     5
+#define DELAY_MS     50000
 
 volatile uint32_t msTicks = 0;
 volatile bool    gCheckADC;
 volatile uint16_t gAdcResult;
 volatile int16_t  gADCOffset;
 float del_div;
+int timerTicked = 0;
+float total_ms_passed = 0;
+int I2C_TX_PACKET_SIZE = 5;
+uint8_t gTxPacket[5] = {'M', 'S', 'P', 'M', '0'};
+
+volatile bool gCheckEdgeCaptureTime;
 
 /*--------------------------------------------------
   SysTick for millisecond counter
@@ -35,67 +35,66 @@ void SysTick_Handler(void) {
 }
 
 static inline void delay_ms(uint32_t ms) {
-    uint32_t start = msTicks;
-    while ((msTicks - start) < ms) {
-        __WFI();
+    NVIC_EnableIRQ(TIMER_0_INST_INT_IRQN);
+
+    int start = 0;
+    while(start < ms){
+        if(timerTicked == 1){
+            start++;
+        }
     }
 }
 
 /*--------------------------------------------------
   Bare‑metal GPIO init (trigger, echo, LEDs)
 --------------------------------------------------*/
-void InitializeGPIO(void) {
-    /* Reset & enable GPIOA (your existing code) */
-    GPIOA->GPRCM.RSTCTL  = GPIO_RSTCTL_KEY_UNLOCK_W
-                         | GPIO_RSTCTL_RESETSTKYCLR_CLR
-                         | GPIO_RSTCTL_RESETASSERT_ASSERT;
-    GPIOA->GPRCM.PWREN   = GPIO_PWREN_KEY_UNLOCK_W
-                         | GPIO_PWREN_ENABLE_ENABLE;
-    delay_cycles(16);
-
-    /* Route PA26 → DIO26, PA27 → DIO27 */
-    IOMUX->SECCFG.PINCM[IOMUX_PINCM27] = IOMUX_PINCM27_PF_GPIOA_DIO26;
-    IOMUX->SECCFG.PINCM[IOMUX_PINCM28] = IOMUX_PINCM28_PF_GPIOA_DIO27;
-
-    /* LEDs */
-    IOMUX->SECCFG.PINCM[IOMUX_PINCM26] = IOMUX_PINCM26_PF_GPIOA_DIO25;
-    IOMUX->SECCFG.PINCM[IOMUX_PINCM25] = IOMUX_PINCM25_PF_GPIOA_DIO24;
-
-    /* Enable outputs for trigger, echo pin unused as input */
-    GPIOA->DOESET31_0   = (TRIG_PIN | RED_LED_PIN | BLUE_LED_PIN);
-    /* LEDs off, trigger low */
-    GPIOA->DOUTCLR31_0  = (TRIG_PIN | RED_LED_PIN | BLUE_LED_PIN);
-
-    delay_cycles(16);
-}
 
 /*--------------------------------------------------
   LED control
 --------------------------------------------------*/
-static inline void Red_LED_On(void)   { GPIOA->DOUTSET31_0 = RED_LED_PIN; }
-static inline void Red_LED_Off(void)  { GPIOA->DOUTCLR31_0 = RED_LED_PIN; }
-static inline void Blue_LED_On(void)  { GPIOA->DOUTSET31_0 = BLUE_LED_PIN;}
-static inline void Blue_LED_Off(void) { GPIOA->DOUTCLR31_0 = BLUE_LED_PIN;}
+static inline void Red_LED_On(void)   { DL_GPIO_writePins(GPIOA,GPIO_GRP_0_RED_LED_PIN); }
+static inline void Red_LED_Off(void)  { DL_GPIO_clearPins(GPIOA,GPIO_GRP_0_RED_LED_PIN); }
+static inline void Blue_LED_On(void)  { DL_GPIO_writePins(GPIOA,GPIO_GRP_3_BLUE_LED_PIN);}
+static inline void Blue_LED_Off(void) { DL_GPIO_clearPins(GPIOA,GPIO_GRP_3_BLUE_LED_PIN);}
 
 /*--------------------------------------------------
   Distance measurement (bare‑metal trigger/echo)
 --------------------------------------------------*/
 float measureDist(void) {
     /* Trigger pulse */
-    GPIOA->DOUTCLR31_0 = TRIG_PIN;
-    delay_ms(1);
-    GPIOA->DOUTSET31_0 = TRIG_PIN;
+    DL_GPIO_clearPins(GPIOA,GPIO_GRP_1_TRIG_PIN_PIN);
+    delay_ms(2);
+    DL_GPIO_writePins(GPIOA,GPIO_GRP_1_TRIG_PIN_PIN);
     delay_ms(10);
-    GPIOA->DOUTCLR31_0 = TRIG_PIN;
+    DL_GPIO_clearPins(GPIOA,GPIO_GRP_1_TRIG_PIN_PIN);
 
-    /* Simple busy‑wait echo read (replace with timer capture if needed) */
-    uint32_t start = msTicks;
-    while (!(GPIOA->DIN31_0 & ECHO_PIN));
-    uint32_t t0 = msTicks - start;
-    while (GPIOA->DIN31_0 & ECHO_PIN);
-    uint32_t t1 = msTicks - start;
+    /* Simple busy wait echo read (replace with timer capture if needed) */
+    __attribute__((unused)) volatile static uint32_t start;
+    gCheckEdgeCaptureTime = false;
+    while (false == gCheckEdgeCaptureTime) {
+                        __WFE();
+     }
+    start = 100 - (DL_Timer_getCaptureCompareValue(CAPTURE_0_INST, DL_TIMER_CC_0_INDEX));
+    __attribute__((unused)) volatile static uint32_t t0;
+    __attribute__((unused)) volatile static uint32_t t1;
+    while ((GPIOA->DIN31_0 & GPIO_GRP_2_ECHO_PIN_PIN))
+    {
+        gCheckEdgeCaptureTime = false;
+            while (false == gCheckEdgeCaptureTime) {
+                                __WFE();
+             }
+            t0 = 100 - (DL_Timer_getCaptureCompareValue(CAPTURE_0_INST, DL_TIMER_CC_0_INDEX));
+    }
+    while (!(GPIOA->DIN31_0 & GPIO_GRP_2_ECHO_PIN_PIN)){
 
-    float duration = (float)(t1 - t0);
+        gCheckEdgeCaptureTime = false;
+            while (false == gCheckEdgeCaptureTime) {
+                                __WFE();
+             }
+            t1 = 100 - (DL_Timer_getCaptureCompareValue(CAPTURE_0_INST, DL_TIMER_CC_0_INDEX));
+    }
+
+    float duration = fabs((float)(t1 - t0));
     /* distance in cm: (duration_ms * 34000 cm/s)/2 */
     return (duration * 34.0f) / 2.0f;
 }
@@ -132,31 +131,39 @@ enum current_state_enum {
 int main(void) {
     SYSCFG_DL_init();
     initSysTick();
-    InitializeGPIO();
 
+    DL_SYSCTL_disableBeeperOutput();
     gADCOffset = DL_ADC12_getADCOffsetCalibration(ADC12_0_ADCMEM_0_REF_VOLTAGE_V);
     NVIC_EnableIRQ(ADC12_0_INST_INT_IRQN);
     gCheckADC = false;
     DL_ADC12_enableConversions(ADC12_0_INST);
+    DL_TimerG_startCounter(TIMER_0_INST);
+
+    NVIC_EnableIRQ(CAPTURE_0_INST_INT_IRQN);
+    DL_TimerG_startCounter(CAPTURE_0_INST);
 
     enum current_state_enum next_state = SirenOff;
     int current_led = 0;
     float distance1 = 0, distance2 = 0, speed = 0;
-    float time_ms = DELAY_MS;
+    float time_ms = 1000000;
     uint32_t threshold = 0;
-
     while (1) {
         switch (next_state) {
             case SirenOff:
                 distance1 = measureDist();
-                Red_LED_Off();
-                Blue_LED_Off();
                 //enableBuzzer(0);
-                if (distance1 > 0) next_state = Calc;
+                if (distance1 > 0) {
+                    next_state = SirenOn;
+                }
+                else{
+                    next_state = SirenOff;
+                }
+
                 break;
 
             case Calc:
                 distance2 = measureDist();
+                Red_LED_On();
                 speed = (distance2 - distance1) / (time_ms / 1000.0f);
                 check_val();
                 threshold = del_div / 10;
@@ -166,20 +173,45 @@ int main(void) {
 
             case SirenOn:
                 distance1 = measureDist();
-                if (current_led) {
-                    Red_LED_Off();
+                if (current_led == 1) {
                     Blue_LED_On();
                 } else {
                     Red_LED_On();
-                    Blue_LED_Off();
                 }
                 current_led = !current_led;
                 //setTone(BUZZER_TONE_LOAD);
                 //enableBuzzer(1);
-                if (distance1 > 0) next_state = Calc;
+                //if (distance1 > 0) next_state = SirenOn;
                 break;
         }
 
         delay_ms(time_ms);
     }
 }
+
+void TIMER_0_INST_IRQHandler(void)
+{
+    // This wakes up the processor!
+
+    switch (TIMG14->CPU_INT.IIDX)
+    {
+    case GPTIMER_CPU_INT_IIDX_STAT_Z: // Counted down to zero event.
+        timerTicked = 1; // set a flag so we can know what woke us up.
+        total_ms_passed = total_ms_passed + 1;
+        break;
+    default:
+        break;
+    }
+}
+
+void CAPTURE_0_INST_IRQHandler(void)
+{
+    switch (DL_TimerG_getPendingInterrupt(CAPTURE_0_INST)) {
+        case DL_TIMERG_IIDX_CC0_DN:
+            gCheckEdgeCaptureTime = true;
+            break;
+        default:
+            break;
+    }
+}
+

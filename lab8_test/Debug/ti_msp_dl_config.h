@@ -119,6 +119,22 @@ extern "C" {
 
 
 
+/* Defines for I2C_0 */
+#define I2C_0_INST                                                          I2C0
+#define I2C_0_INST_IRQHandler                                    I2C0_IRQHandler
+#define I2C_0_INST_INT_IRQN                                        I2C0_INT_IRQn
+#define I2C_0_BUS_SPEED_HZ                                                100000
+#define GPIO_I2C_0_SDA_PORT                                                GPIOA
+#define GPIO_I2C_0_SDA_PIN                                         DL_GPIO_PIN_0
+#define GPIO_I2C_0_IOMUX_SDA                                      (IOMUX_PINCM1)
+#define GPIO_I2C_0_IOMUX_SDA_FUNC                       IOMUX_PINCM1_PF_I2C0_SDA
+#define GPIO_I2C_0_SCL_PORT                                                GPIOA
+#define GPIO_I2C_0_SCL_PIN                                         DL_GPIO_PIN_1
+#define GPIO_I2C_0_IOMUX_SCL                                      (IOMUX_PINCM2)
+#define GPIO_I2C_0_IOMUX_SCL_FUNC                       IOMUX_PINCM2_PF_I2C0_SCL
+
+
+
 /* Defines for ADC12_0 */
 #define ADC12_0_INST                                                        ADC0
 #define ADC12_0_INST_IRQHandler                                  ADC0_IRQHandler
@@ -130,6 +146,10 @@ extern "C" {
 #define GPIO_ADC12_0_C0_PIN                                       DL_GPIO_PIN_27
 
 
+
+/* Defines for CRC */
+#define CRC_SEED                                                        (0xFFFF)
+
 /* clang-format on */
 
 void SYSCFG_DL_init(void);
@@ -139,7 +159,9 @@ void SYSCFG_DL_SYSCTL_init(void);
 void SYSCFG_DL_BEEPER_init(void);
 void SYSCFG_DL_PWM_0_init(void);
 void SYSCFG_DL_TIMER_0_init(void);
+void SYSCFG_DL_I2C_0_init(void);
 void SYSCFG_DL_ADC12_0_init(void);
+void SYSCFG_DL_CRC_init(void);
 
 
 #ifdef __cplusplus

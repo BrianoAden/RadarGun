@@ -11,6 +11,7 @@ ORDERED_OBJS += \
 "./ti_msp_dl_config.o" \
 "./startup_msps003fx_ticlang.o" \
 "./main.o" \
+"./ti/comm_modules/i2c/controller/i2c_comm_controller.o" \
 $(GEN_CMDS__FLAG) \
 -Wl,-ldevice.cmd.genlibs \
 -Wl,-llibc.a \
@@ -23,7 +24,9 @@ RMDIR := rm -rf
 # All of the sources participating in the build are defined here
 -include sources.mk
 -include subdir_vars.mk
+-include ti/comm_modules/i2c/controller/subdir_vars.mk
 -include subdir_rules.mk
+-include ti/comm_modules/i2c/controller/subdir_rules.mk
 -include objects.mk
 
 ifneq ($(MAKECMDGOALS),clean)
@@ -141,8 +144,8 @@ lab8_test.out: $(OBJS) $(GEN_CMDS)
 # Other Targets
 clean:
 	-$(RM) $(GEN_MISC_FILES__QUOTED)$(GEN_FILES__QUOTED)$(EXE_OUTPUTS__QUOTED)
-	-$(RM) "ti_msp_dl_config.o" "startup_msps003fx_ticlang.o" "main.o" 
-	-$(RM) "ti_msp_dl_config.d" "startup_msps003fx_ticlang.d" "main.d" 
+	-$(RM) "ti_msp_dl_config.o" "startup_msps003fx_ticlang.o" "main.o" "ti/comm_modules/i2c/controller/i2c_comm_controller.o" 
+	-$(RM) "ti_msp_dl_config.d" "startup_msps003fx_ticlang.d" "main.d" "ti/comm_modules/i2c/controller/i2c_comm_controller.d" 
 	-@echo 'Finished clean'
 	-@echo ' '
 

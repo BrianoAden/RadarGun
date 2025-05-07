@@ -1,6 +1,8 @@
 # FIXED
 
-main.o: ../main.c \
+ti/comm_modules/i2c/controller/i2c_comm_controller.o: \
+ ../ti/comm_modules/i2c/controller/i2c_comm_controller.c \
+ ../ti/comm_modules/i2c/controller/i2c_comm_controller.h \
  ti_msp_dl_config.h \
  /Applications/ti/mspm0_sdk_2_03_00_07/source/ti/devices/msp/msp.h \
  /Applications/ti/mspm0_sdk_2_03_00_07/source/ti/devices/DeviceFamily.h \
@@ -66,8 +68,9 @@ main.o: ../main.c \
  /Applications/ti/mspm0_sdk_2_03_00_07/source/ti/driverlib/dl_vref.h \
  /Applications/ti/mspm0_sdk_2_03_00_07/source/ti/driverlib/dl_wwdt.h \
  /Applications/ti/mspm0_sdk_2_03_00_07/source/ti/driverlib/m0p/dl_interrupt.h \
- /Applications/ti/mspm0_sdk_2_03_00_07/source/ti/driverlib/m0p/dl_systick.h \
- /Users/adenbriano/Downloads/lab8_test/ti/comm_modules/i2c/controller/i2c_comm_controller.h
+ /Applications/ti/mspm0_sdk_2_03_00_07/source/ti/driverlib/m0p/dl_systick.h
+
+../ti/comm_modules/i2c/controller/i2c_comm_controller.h:
 
 ti_msp_dl_config.h:
 
@@ -200,5 +203,3 @@ ti_msp_dl_config.h:
 /Applications/ti/mspm0_sdk_2_03_00_07/source/ti/driverlib/m0p/dl_interrupt.h:
 
 /Applications/ti/mspm0_sdk_2_03_00_07/source/ti/driverlib/m0p/dl_systick.h:
-
-/Users/adenbriano/Downloads/lab8_test/ti/comm_modules/i2c/controller/i2c_comm_controller.h:

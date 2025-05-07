@@ -6,7 +6,7 @@
 build-2109964143: ../lab8_msps003f3.syscfg
 	@echo 'Building file: "$<"'
 	@echo 'Invoking: SysConfig'
-	"/Applications/ti/ccs1281/ccs/utils/sysconfig_1.21.0/sysconfig_cli.sh" --script "/Users/adenbriano/Downloads/lab8_test/lab8_msps003f3.syscfg" -o "." -s "/Applications/ti/mspm0_sdk_2_03_00_07/.metadata/product.json" --compiler ticlang
+	"/Users/adenbriano/ti/sysconfig_1.22.0/sysconfig_cli.sh" --script "/Users/adenbriano/Downloads/lab8_test/lab8_msps003f3.syscfg" -o "." -s "/Applications/ti/mspm0_sdk_2_03_00_07/.metadata/product.json" --compiler ticlang
 	@echo 'Finished building: "$<"'
 	@echo ' '
 

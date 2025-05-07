@@ -1,6 +1,7 @@
 "./ti_msp_dl_config.o"
 "./startup_msps003fx_ticlang.o"
 "./main.o"
+"./ti/comm_modules/i2c/controller/i2c_comm_controller.o"
 -l"./device_linker.cmd"
 -ldevice.cmd.genlibs
 -llibc.a

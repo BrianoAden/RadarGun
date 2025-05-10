@@ -11,7 +11,6 @@ ORDERED_OBJS += \
 "./ti_msp_dl_config.o" \
 "./startup_msps003fx_ticlang.o" \
 "./main.o" \
-"./ti/comm_modules/i2c/controller/i2c_comm_controller.o" \
 $(GEN_CMDS__FLAG) \
 -Wl,-ldevice.cmd.genlibs \
 -Wl,-llibc.a \
@@ -24,9 +23,7 @@ RMDIR := rm -rf
 # All of the sources participating in the build are defined here
 -include sources.mk
 -include subdir_vars.mk
--include ti/comm_modules/i2c/controller/subdir_vars.mk
 -include subdir_rules.mk
--include ti/comm_modules/i2c/controller/subdir_rules.mk
 -include objects.mk
 
 ifneq ($(MAKECMDGOALS),clean)
@@ -137,15 +134,15 @@ all: $(OBJS) $(GEN_CMDS)
 lab8_test.out: $(OBJS) $(GEN_CMDS)
 	@echo 'Building target: "$@"'
 	@echo 'Invoking: Arm Linker'
-	"/Applications/ti/ccs1281/ccs/tools/compiler/ti-cgt-armllvm_3.2.1.LTS/bin/tiarmclang" @"device.opt"  -march=thumbv6m -mcpu=cortex-m0plus -mfloat-abi=soft -mlittle-endian -mthumb -O2 -gdwarf-3 -Wl,-m"lab8_test.map" -Wl,-i"/Applications/ti/mspm0_sdk_2_03_00_07/source" -Wl,-i"/Users/adenbriano/Downloads/lab8_test" -Wl,-i"/Users/adenbriano/Downloads/lab8_test/Debug/syscfg" -Wl,-i"/Applications/ti/ccs1281/ccs/tools/compiler/ti-cgt-armllvm_3.2.1.LTS/lib" -Wl,--diag_wrap=off -Wl,--display_error_number -Wl,--warn_sections -Wl,--xml_link_info="lab8_test_linkInfo.xml" -Wl,--rom_model -o "lab8_test.out" $(ORDERED_OBJS)
+	"/Applications/ti/ccs1281/ccs/tools/compiler/ti-cgt-armllvm_3.2.1.LTS/bin/tiarmclang" @"device.opt"  -march=thumbv6m -mcpu=cortex-m0plus -mfloat-abi=soft -mlittle-endian -mthumb -O2 -gdwarf-3 -Wl,-m"lab8_test.map" -Wl,-i"/Applications/ti/mspm0_sdk_2_03_00_07/source" -Wl,-i"/Users/adenbriano/Downloads/lab8_test 2" -Wl,-i"/Users/adenbriano/Downloads/lab8_test 2/Debug/syscfg" -Wl,-i"/Applications/ti/ccs1281/ccs/tools/compiler/ti-cgt-armllvm_3.2.1.LTS/lib" -Wl,--diag_wrap=off -Wl,--display_error_number -Wl,--warn_sections -Wl,--xml_link_info="lab8_test_linkInfo.xml" -Wl,--rom_model -o "lab8_test.out" $(ORDERED_OBJS)
 	@echo 'Finished building target: "$@"'
 	@echo ' '
 
 # Other Targets
 clean:
 	-$(RM) $(GEN_MISC_FILES__QUOTED)$(GEN_FILES__QUOTED)$(EXE_OUTPUTS__QUOTED)
-	-$(RM) "ti_msp_dl_config.o" "startup_msps003fx_ticlang.o" "main.o" "ti/comm_modules/i2c/controller/i2c_comm_controller.o" 
-	-$(RM) "ti_msp_dl_config.d" "startup_msps003fx_ticlang.d" "main.d" "ti/comm_modules/i2c/controller/i2c_comm_controller.d" 
+	-$(RM) "ti_msp_dl_config.o" "startup_msps003fx_ticlang.o" "main.o" 
+	-$(RM) "ti_msp_dl_config.d" "startup_msps003fx_ticlang.d" "main.d" 
 	-@echo 'Finished clean'
 	-@echo ' '
 

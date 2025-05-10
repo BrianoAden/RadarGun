@@ -17,5 +17,5 @@
 	<sourceLookupPath value="${COM_TI_MSPM0_SDK_INSTALL_DIR}/source/ti/driverlib"/>
 	<origin value="/Users/ckemere/ti/mspm0_sdk_2_03_00_07/examples/nortos/LP_MSPM0G3507/driverlib/empty_driverlib_src/ticlang/empty_driverlib_src_LP_MSPM0G3507_nortos_ticlang.projectspec"/>
 	<filesToOpen value="empty.syscfg,README.md"/>
-	<isTargetManual value="true"/>
+	<isTargetManual value="false"/>
 </projectOptions>

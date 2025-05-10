@@ -88,12 +88,18 @@ extern "C" {
 #define PWM_0_INST                                                        TIMG14
 #define PWM_0_INST_IRQHandler                                  TIMG14_IRQHandler
 #define PWM_0_INST_INT_IRQN                                    (TIMG14_INT_IRQn)
-#define PWM_0_INST_CLK_FREQ                                             24000000
+#define PWM_0_INST_CLK_FREQ                                                32768
+/* GPIO defines for channel 0 */
+#define GPIO_PWM_0_C0_PORT                                                 GPIOA
+#define GPIO_PWM_0_C0_PIN                                         DL_GPIO_PIN_23
+#define GPIO_PWM_0_C0_IOMUX                                      (IOMUX_PINCM24)
+#define GPIO_PWM_0_C0_IOMUX_FUNC                    IOMUX_PINCM24_PF_TIMG14_CCP0
+#define GPIO_PWM_0_C0_IDX                                    DL_TIMER_CC_0_INDEX
 /* GPIO defines for channel 1 */
 #define GPIO_PWM_0_C1_PORT                                                 GPIOA
-#define GPIO_PWM_0_C1_PIN                                         DL_GPIO_PIN_23
-#define GPIO_PWM_0_C1_IOMUX                                      (IOMUX_PINCM24)
-#define GPIO_PWM_0_C1_IOMUX_FUNC                    IOMUX_PINCM24_PF_TIMG14_CCP1
+#define GPIO_PWM_0_C1_PIN                                         DL_GPIO_PIN_25
+#define GPIO_PWM_0_C1_IOMUX                                      (IOMUX_PINCM26)
+#define GPIO_PWM_0_C1_IOMUX_FUNC                    IOMUX_PINCM26_PF_TIMG14_CCP1
 #define GPIO_PWM_0_C1_IDX                                    DL_TIMER_CC_1_INDEX
 /* GPIO defines for channel 2 */
 #define GPIO_PWM_0_C2_PORT                                                 GPIOA
@@ -101,12 +107,6 @@ extern "C" {
 #define GPIO_PWM_0_C2_IOMUX                                      (IOMUX_PINCM25)
 #define GPIO_PWM_0_C2_IOMUX_FUNC                    IOMUX_PINCM25_PF_TIMG14_CCP2
 #define GPIO_PWM_0_C2_IDX                                    DL_TIMER_CC_2_INDEX
-/* GPIO defines for channel 3 */
-#define GPIO_PWM_0_C3_PORT                                                 GPIOA
-#define GPIO_PWM_0_C3_PIN                                         DL_GPIO_PIN_25
-#define GPIO_PWM_0_C3_IOMUX                                      (IOMUX_PINCM26)
-#define GPIO_PWM_0_C3_IOMUX_FUNC                    IOMUX_PINCM26_PF_TIMG14_CCP3
-#define GPIO_PWM_0_C3_IDX                                    DL_TIMER_CC_3_INDEX
 
 
 
@@ -116,22 +116,6 @@ extern "C" {
 #define TIMER_0_INST_INT_IRQN                                   (TIMA0_INT_IRQn)
 #define TIMER_0_INST_LOAD_VALUE                                         (46874U)
 
-
-
-
-/* Defines for I2C_0 */
-#define I2C_0_INST                                                          I2C0
-#define I2C_0_INST_IRQHandler                                    I2C0_IRQHandler
-#define I2C_0_INST_INT_IRQN                                        I2C0_INT_IRQn
-#define I2C_0_BUS_SPEED_HZ                                                100000
-#define GPIO_I2C_0_SDA_PORT                                                GPIOA
-#define GPIO_I2C_0_SDA_PIN                                         DL_GPIO_PIN_0
-#define GPIO_I2C_0_IOMUX_SDA                                      (IOMUX_PINCM1)
-#define GPIO_I2C_0_IOMUX_SDA_FUNC                       IOMUX_PINCM1_PF_I2C0_SDA
-#define GPIO_I2C_0_SCL_PORT                                                GPIOA
-#define GPIO_I2C_0_SCL_PIN                                         DL_GPIO_PIN_1
-#define GPIO_I2C_0_IOMUX_SCL                                      (IOMUX_PINCM2)
-#define GPIO_I2C_0_IOMUX_SCL_FUNC                       IOMUX_PINCM2_PF_I2C0_SCL
 
 
 
@@ -147,8 +131,17 @@ extern "C" {
 
 
 
-/* Defines for CRC */
-#define CRC_SEED                                                        (0xFFFF)
+/* Port definition for Pin Group GPIO_GRP_0 */
+#define GPIO_GRP_0_PORT                                                  (GPIOA)
+
+/* Defines for ECHO: GPIOA.22 with pinCMx 23 on package pin 17 */
+// pins affected by this interrupt request:["ECHO"]
+#define GPIO_GRP_0_INT_IRQN                                     (GPIOA_INT_IRQn)
+#define GPIO_GRP_0_INT_IIDX                     (DL_INTERRUPT_GROUP1_IIDX_GPIOA)
+#define GPIO_GRP_0_ECHO_IIDX                                (DL_GPIO_IIDX_DIO22)
+#define GPIO_GRP_0_ECHO_PIN                                     (DL_GPIO_PIN_22)
+#define GPIO_GRP_0_ECHO_IOMUX                                    (IOMUX_PINCM23)
+#define GPIOA_EVENT_PUBLISHER_1_CHANNEL                                      (1)
 
 /* clang-format on */
 
@@ -159,9 +152,8 @@ void SYSCFG_DL_SYSCTL_init(void);
 void SYSCFG_DL_BEEPER_init(void);
 void SYSCFG_DL_PWM_0_init(void);
 void SYSCFG_DL_TIMER_0_init(void);
-void SYSCFG_DL_I2C_0_init(void);
 void SYSCFG_DL_ADC12_0_init(void);
-void SYSCFG_DL_CRC_init(void);
+
 
 
 #ifdef __cplusplus

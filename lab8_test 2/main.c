@@ -39,10 +39,10 @@ float speed_threshold = 0;
 volatile bool gCheckADC;
 volatile uint16_t gAdcResult;
 volatile int16_t gADCOffset;
-volatile uint32_t pinState = 0;
 volatile uint32_t duration = 0;
 volatile uint32_t flag = 0;
-volatile uint32_t distance = 0;
+volatile float distance = 0;
+volatile float time = 0;
 
 
 void check_val(){
@@ -95,12 +95,9 @@ int main(void)
     DL_Timer_setCaptureCompareValue(PWM_0_INST,16384, 2); //Blue
 
     while (1) {
-        pinState = DL_GPIO_readPins(GPIOA, DL_GPIO_PIN_22);
         check_val();
 
         // adjust PWM of LEDs by turning POT
-
-        DL_GPIO_setPins(GPIOA, GPIO_PWM_0_C1_PIN);
 
                 DL_Timer_setLoadValue(PWM_0_INST, 16384);
                 DL_Timer_setCaptureCompareValue(PWM_0_INST, 8192, 0);
@@ -112,13 +109,13 @@ int main(void)
         //DL_GPIO_setPins(GPIOA, DL_GPIO_PIN_25);  // LED ON
 
         if (flag){
-            //distance = (((duration*(.00001067)))*(343))/2;
-            DL_Timer_setCaptureCompareValue(PWM_0_INST,8192, 1);
-        }
-        if(distance > 1){
+            distance = (time*(343))/2;
             //DL_Timer_setCaptureCompareValue(PWM_0_INST,8192, 1);
+        }
+        if(distance > 0.5 && distance < 4){
+            DL_Timer_setCaptureCompareValue(PWM_0_INST,8192, 1);
         }else{
-            //DL_Timer_setCaptureCompareValue(PWM_0_INST,16384, 1);
+            DL_Timer_setCaptureCompareValue(PWM_0_INST,16384, 1);
         }
 
         if (del_div>500) {
@@ -155,8 +152,8 @@ void GPIOA_IRQHandler(void)
             flag = 0;
         } else {
             // Falling edge: stop + capture duration
-            duration = DL_Timer_getLoadValue(TIMER_0_INST) - DL_Timer_getTimerCount(TIMER_0_INST);
-            DL_Timer_setCaptureCompareValue(PWM_0_INST,8192, 1);
+            duration = DL_Timer_getTimerCount(TIMER_0_INST);
+            time = duration*((10.67)/(1000000));
             DL_Timer_stopCounter(TIMER_0_INST);
             flag = 1;
 

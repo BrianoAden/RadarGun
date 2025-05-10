@@ -31,6 +31,7 @@
  */
 
 #include "ti_msp_dl_config.h"
+#include "math.h"
 
 #define DELAY (16000000)
 int t = 0;
@@ -39,11 +40,13 @@ float speed_threshold = 0;
 volatile bool gCheckADC;
 volatile uint16_t gAdcResult;
 volatile int16_t gADCOffset;
-volatile uint32_t duration = 0;
+volatile uint32_t ticks = 0;
 volatile uint32_t flag = 0;
 volatile float distance = 0;
 volatile float time = 0;
-
+volatile float last_distance;
+volatile float now_s;
+volatile float last_echo_s;
 
 void check_val(){
     DL_ADC12_startConversion(ADC12_0_INST);
@@ -70,10 +73,12 @@ void check_val(){
 
     gCheckADC = false;
     DL_ADC12_enableConversions(ADC12_0_INST);
-    speed_threshold = (del_div/111.8468146);
+    //speed_threshold = (del_div/111.8468146);
+    speed_threshold = (del_div/1000);
 }
 
 //deldiv = 1000 => speed_threshold = 8.94 m/s
+//deldiv = 1000 => speed_threshold = 2 m/s
 //divide by 111.8468146
 
 int main(void)
@@ -91,16 +96,16 @@ int main(void)
     gCheckADC = false;
     DL_ADC12_enableConversions(ADC12_0_INST);
 
-    DL_Timer_setCaptureCompareValue(PWM_0_INST,16384, 1); //Red
-    DL_Timer_setCaptureCompareValue(PWM_0_INST,16384, 2); //Blue
+    DL_Timer_setCaptureCompareValue(PWM_0_INST,8192, 1); //Red off
+    DL_Timer_setCaptureCompareValue(PWM_0_INST,8192, 2); //Blue off
 
     while (1) {
         check_val();
 
         // adjust PWM of LEDs by turning POT
 
-                DL_Timer_setLoadValue(PWM_0_INST, 16384);
-                DL_Timer_setCaptureCompareValue(PWM_0_INST, 8192, 0);
+        DL_Timer_setLoadValue(PWM_0_INST, 8192);
+        DL_Timer_setCaptureCompareValue(PWM_0_INST, 4096, 0);
 
         //DL_Timer_setLoadValue(PWM_0_INST, 32768/(del_div/50));
         //DL_Timer_setCaptureCompareValue(PWM_0_INST, (32768/(del_div/50))/2, 2);
@@ -108,15 +113,11 @@ int main(void)
 
         //DL_GPIO_setPins(GPIOA, DL_GPIO_PIN_25);  // LED ON
 
-        if (flag){
-            distance = (time*(343))/2;
-            //DL_Timer_setCaptureCompareValue(PWM_0_INST,8192, 1);
-        }
-        if(distance > 0.5 && distance < 4){
-            DL_Timer_setCaptureCompareValue(PWM_0_INST,8192, 1);
-        }else{
-            DL_Timer_setCaptureCompareValue(PWM_0_INST,16384, 1);
-        }
+//        if(distance > 0.5 && distance < 4){
+//            DL_Timer_setCaptureCompareValue(PWM_0_INST,8192, 1);
+//        }else{
+//            DL_Timer_setCaptureCompareValue(PWM_0_INST,16384, 1);
+//        }
 
         if (del_div>500) {
             DL_SYSCTL_enableBeeperOutput();
@@ -141,23 +142,38 @@ void ADC12_0_INST_IRQHandler(void)
 
 void GPIOA_IRQHandler(void)
 {
-    uint32_t status = DL_GPIO_getEnabledInterruptStatus(GPIOA, DL_GPIO_PIN_22);
-    DL_GPIO_clearInterruptStatus(GPIOA, DL_GPIO_PIN_22);
+    uint32_t status = DL_GPIO_getEnabledInterruptStatus(GPIOA, DL_GPIO_PIN_22); //check for interrupt
+    DL_GPIO_clearInterruptStatus(GPIOA, DL_GPIO_PIN_22); //clear interrupt
 
     if (status) {
-        if (DL_GPIO_readPins(GPIOA, DL_GPIO_PIN_22)) {
-            // Rising edge: reset + start timer
+        if (DL_GPIO_readPins(GPIOA, DL_GPIO_PIN_22)) { //rising edge
             DL_Timer_setCounterValueAfterEnable(TIMER_0_INST, 0);
             DL_Timer_startCounter(TIMER_0_INST);
-            flag = 0;
-        } else {
-            // Falling edge: stop + capture duration
-            duration = DL_Timer_getTimerCount(TIMER_0_INST);
-            time = duration*((10.67)/(1000000));
+        } else { //falling edge
+            ticks = DL_Timer_getTimerCount(TIMER_0_INST);
+            now_s = ticks*(0.00001067f);
+            distance = (now_s*345)/2;
+            if (last_echo_s != 0){
+                float dx = distance - last_distance;
+                float dt_s = (DL_Timer_getTimerCount(TIMER_1_INST)*(1e-6));
+                float speed_ms = dx / dt_s;
+                speed_ms = fabsf(speed_ms);
+                DL_Timer_setCaptureCompareValue(PWM_0_INST,4096, 2);
+                if (speed_ms > speed_threshold){
+                    DL_Timer_setCaptureCompareValue(PWM_0_INST,4096, 1);
+                    DL_Timer_setCaptureCompareValue(PWM_0_INST,4096, 2);
+                    DL_SYSCTL_enableBeeperOutput();
+                } else {
+//                    DL_Timer_setCaptureCompareValue(PWM_0_INST,8192, 1);
+//                    DL_Timer_setCaptureCompareValue(PWM_0_INST,8192, 2);
+//                    DL_SYSCTL_disableBeeperOutput();
+                }
+            }
+            DL_Timer_setCounterValueAfterEnable(TIMER_1_INST, 0);
             DL_Timer_stopCounter(TIMER_0_INST);
-            flag = 1;
-
-            // Store or process 'duration' as needed
+            DL_Timer_startCounter(TIMER_1_INST);
+            last_echo_s = now_s;
+            last_distance = distance;
         }
     }
 }

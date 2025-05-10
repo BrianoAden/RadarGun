@@ -115,6 +115,11 @@ extern "C" {
 #define TIMER_0_INST_IRQHandler                                 TIMA0_IRQHandler
 #define TIMER_0_INST_INT_IRQN                                   (TIMA0_INT_IRQn)
 #define TIMER_0_INST_LOAD_VALUE                                         (46874U)
+/* Defines for TIMER_1 */
+#define TIMER_1_INST                                                     (TIMG8)
+#define TIMER_1_INST_IRQHandler                                 TIMG8_IRQHandler
+#define TIMER_1_INST_INT_IRQN                                   (TIMG8_INT_IRQn)
+#define TIMER_1_INST_LOAD_VALUE                                             (0U)
 
 
 
@@ -152,6 +157,7 @@ void SYSCFG_DL_SYSCTL_init(void);
 void SYSCFG_DL_BEEPER_init(void);
 void SYSCFG_DL_PWM_0_init(void);
 void SYSCFG_DL_TIMER_0_init(void);
+void SYSCFG_DL_TIMER_1_init(void);
 void SYSCFG_DL_ADC12_0_init(void);
 
 

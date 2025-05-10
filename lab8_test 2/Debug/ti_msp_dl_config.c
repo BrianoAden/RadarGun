@@ -53,6 +53,7 @@ SYSCONFIG_WEAK void SYSCFG_DL_init(void)
     SYSCFG_DL_BEEPER_init();
     SYSCFG_DL_PWM_0_init();
     SYSCFG_DL_TIMER_0_init();
+    SYSCFG_DL_TIMER_1_init();
     SYSCFG_DL_ADC12_0_init();
 }
 
@@ -62,12 +63,14 @@ SYSCONFIG_WEAK void SYSCFG_DL_initPower(void)
 
     DL_TimerG_reset(PWM_0_INST);
     DL_TimerA_reset(TIMER_0_INST);
+    DL_TimerG_reset(TIMER_1_INST);
     DL_ADC12_reset(ADC12_0_INST);
 
     DL_GPIO_enablePower(GPIOA);
 
     DL_TimerG_enablePower(PWM_0_INST);
     DL_TimerA_enablePower(TIMER_0_INST);
+    DL_TimerG_enablePower(TIMER_1_INST);
     DL_ADC12_enablePower(ADC12_0_INST);
     delay_cycles(POWER_STARTUP_DELAY);
 }
@@ -130,7 +133,7 @@ static const DL_TimerG_ClockConfig gPWM_0ClockConfig = {
 
 static const DL_TimerG_PWMConfig gPWM_0Config = {
     .pwmMode = DL_TIMER_PWM_MODE_EDGE_ALIGN,
-    .period = 16384,
+    .period = 8192,
     .isTimerWithFourCC = true,
     .startTimer = DL_TIMER_START,
 };
@@ -151,21 +154,21 @@ SYSCONFIG_WEAK void SYSCFG_DL_PWM_0_init(void) {
 		DL_TIMERG_CAPTURE_COMPARE_0_INDEX);
 
     DL_TimerG_setCaptCompUpdateMethod(PWM_0_INST, DL_TIMER_CC_UPDATE_METHOD_IMMEDIATE, DL_TIMERG_CAPTURE_COMPARE_0_INDEX);
-    DL_TimerG_setCaptureCompareValue(PWM_0_INST, 16384, DL_TIMER_CC_0_INDEX);
+    DL_TimerG_setCaptureCompareValue(PWM_0_INST, 4096, DL_TIMER_CC_0_INDEX);
 
     DL_TimerG_setCaptureCompareOutCtl(PWM_0_INST, DL_TIMER_CC_OCTL_INIT_VAL_LOW,
 		DL_TIMER_CC_OCTL_INV_OUT_DISABLED, DL_TIMER_CC_OCTL_SRC_FUNCVAL,
 		DL_TIMERG_CAPTURE_COMPARE_1_INDEX);
 
     DL_TimerG_setCaptCompUpdateMethod(PWM_0_INST, DL_TIMER_CC_UPDATE_METHOD_IMMEDIATE, DL_TIMERG_CAPTURE_COMPARE_1_INDEX);
-    DL_TimerG_setCaptureCompareValue(PWM_0_INST, 16384, DL_TIMER_CC_1_INDEX);
+    DL_TimerG_setCaptureCompareValue(PWM_0_INST, 4096, DL_TIMER_CC_1_INDEX);
 
     DL_TimerG_setCaptureCompareOutCtl(PWM_0_INST, DL_TIMER_CC_OCTL_INIT_VAL_LOW,
 		DL_TIMER_CC_OCTL_INV_OUT_DISABLED, DL_TIMER_CC_OCTL_SRC_FUNCVAL,
 		DL_TIMERG_CAPTURE_COMPARE_2_INDEX);
 
     DL_TimerG_setCaptCompUpdateMethod(PWM_0_INST, DL_TIMER_CC_UPDATE_METHOD_IMMEDIATE, DL_TIMERG_CAPTURE_COMPARE_2_INDEX);
-    DL_TimerG_setCaptureCompareValue(PWM_0_INST, 8192, DL_TIMER_CC_2_INDEX);
+    DL_TimerG_setCaptureCompareValue(PWM_0_INST, 4096, DL_TIMER_CC_2_INDEX);
 
     DL_TimerG_enableClock(PWM_0_INST);
 
@@ -208,6 +211,42 @@ SYSCONFIG_WEAK void SYSCFG_DL_TIMER_0_init(void) {
         (DL_TimerA_TimerConfig *) &gTIMER_0TimerConfig);
     DL_TimerA_enableInterrupt(TIMER_0_INST , DL_TIMERA_INTERRUPT_ZERO_EVENT);
     DL_TimerA_enableClock(TIMER_0_INST);
+
+
+
+
+
+}
+
+/*
+ * Timer clock configuration to be sourced by MFCLK /  (1000000 Hz)
+ * timerClkFreq = (timerClkSrc / (timerClkDivRatio * (timerClkPrescale + 1)))
+ *   1000000 Hz = 1000000 Hz / (4 * (0 + 1))
+ */
+static const DL_TimerG_ClockConfig gTIMER_1ClockConfig = {
+    .clockSel    = DL_TIMER_CLOCK_MFCLK,
+    .divideRatio = DL_TIMER_CLOCK_DIVIDE_4,
+    .prescale    = 0U,
+};
+
+/*
+ * Timer load value (where the counter starts from) is calculated as (timerPeriod * timerClockFreq) - 1
+ * TIMER_1_INST_LOAD_VALUE = (0 ms * 1000000 Hz) - 1
+ */
+static const DL_TimerG_TimerConfig gTIMER_1TimerConfig = {
+    .period     = TIMER_1_INST_LOAD_VALUE,
+    .timerMode  = DL_TIMER_TIMER_MODE_ONE_SHOT_UP,
+    .startTimer = DL_TIMER_STOP,
+};
+
+SYSCONFIG_WEAK void SYSCFG_DL_TIMER_1_init(void) {
+
+    DL_TimerG_setClockConfig(TIMER_1_INST,
+        (DL_TimerG_ClockConfig *) &gTIMER_1ClockConfig);
+
+    DL_TimerG_initTimerMode(TIMER_1_INST,
+        (DL_TimerG_TimerConfig *) &gTIMER_1TimerConfig);
+    DL_TimerG_enableClock(TIMER_1_INST);
 
 
 
